@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import fs from 'fs'
+import path from 'path'
 import http from 'http'
 import { Octokit, App } from 'octokit'
 import { createNodeMiddleware } from '@octokit/webhooks'
@@ -10,7 +11,7 @@ dotenv.config()
 // Set configured values
 const appId = process.env.APP_ID
 const privateKeyPath = process.env.PRIVATE_KEY_PATH
-const privateKey = fs.readFileSync(privateKeyPath, 'utf8')
+const privateKey = fs.readFileSync(path.join(process.cwd(), privateKeyPath), 'utf8')
 const secret = process.env.WEBHOOK_SECRET
 const enterpriseHostname = process.env.ENTERPRISE_HOSTNAME
 const messageForNewPRs = fs.readFileSync('./message.md', 'utf8')
@@ -66,11 +67,11 @@ app.webhooks.onError((error) => {
 
 // Launch a web server to listen for GitHub webhooks
 const port = process.env.PORT || 3000
-const path = '/api/webhook'
-const localWebhookUrl = `http://localhost:${port}${path}`
+const prefix = '/api/webhook'
+const localWebhookUrl = `http://localhost:${port}${prefix}`
 
 // See https://github.com/octokit/webhooks.js/#createnodemiddleware for all options
-const middleware = createNodeMiddleware(app.webhooks, { path })
+const middleware = createNodeMiddleware(app.webhooks, { path: prefix })
 
 http.createServer(middleware).listen(port, () => {
   console.log(`Server is listening for events at: ${localWebhookUrl}`)
